@@ -24,7 +24,7 @@
                 'fun':              { score: 0.45, color: 'red'},
                 'friend':           { score: 0.55, color: 'red'},
                 'relative':         { score: 0.6 , color: 'red'},
-                'boyfriend':        { score: 0.65, color: 'red'},
+                'boyfriend':        { score: 0.75, color: 'red'},
                 'work':             { score: 0.8 , color: 'red'},
                 'school':           { score: 0.9 , color: 'red'},
                 'home':             { score: 1.0 , color: 'red'}
@@ -81,28 +81,39 @@
                         last_age = age
                     }
                 }
+                // create info window
+                var infowindow = new google.maps.InfoWindow({
+                    map: map
+                });
                 for (var i = 0; i < results.features.length; i++){
                     var place = results.features[i];
                     var coords = place.geometry.coordinates;
                     var lat_lng = new google.maps.LatLng(coords[1], coords[0]);
+                    // add a marker
                     var marker = new google.maps.Marker({
                         position: lat_lng,
                         map: map,
                         icon: get_icon(place.properties, last_age)
+                    });
+                    // on click, show info window
+                    marker.content = '<p>'+place.properties.name+'</p>';
+                    google.maps.event.addListener(marker, 'click', function() {
+                        infowindow.setContent(this.content);
+                        infowindow.open(map, this);
                     });
                 }
             }
             function get_icon(properties, last_age){
                 var total_years = 1 + properties.end - properties.start
                 var age_end = properties.end
-                var place_name = properties.name
                 var place_type = properties.type
                 var icon = {
                     fillColor: TYPE_INFO[place_type].color,
                     fillOpacity: get_opacity(age_end, last_age),
                     path: google.maps.SymbolPath.CIRCLE,
                     scale: get_scale(total_years, last_age, place_type),
-                    strokeWeight: 0.5
+                    strokeWeight: 0.5,
+                    strokeColor: 'white'
                 };
                 return icon;
             }
@@ -111,8 +122,8 @@
                 return 0.2 + age_end*(0.5/last_age)
             }
             function get_scale(total_years, last_age, place_type){
-                // scale is between 1 and 15
-                var factor = 14.0/(last_age*MAX_TYPE_SCORE - MIN_TYPE_SCORE)
+                // scale is between 1.5 and 15
+                var factor = 13.5/(last_age*MAX_TYPE_SCORE - MIN_TYPE_SCORE)
                 var offset = 15.0 - factor*last_age
                 return (total_years * TYPE_INFO[place_type].score)*factor + offset
             }
