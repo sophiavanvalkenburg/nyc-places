@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta http-equiv="content-type" content="text/html; charset=utf-8">
+        <style type="text/css">
+            html, body {
+                height: 100%;
+                margin: 0;
+            }
+            #map_canvas {
+                min-height: 100%;
+            }
+        </style>
+        <script src='https://maps.googleapis.com/maps/api/js?sensor=false&libraries=visualization'></script>
+        <script>
+            var TYPE_INFO = {
+                'medical':          { score: 0.1 , color: 'red'},
+                'event':            { score: 0.15, color: 'red'},
+                'neighborhood':     { score: 0.20, color: 'red'},
+                'landmark':         { score: 0.25, color: 'red'},
+                'park':             { score: 0.3 , color: 'red'},
+                'food':             { score: 0.35, color: 'red'},
+                'extracurricular':  { score: 0.4 , color: 'red'},
+                'fun':              { score: 0.45, color: 'red'},
+                'friend':           { score: 0.55, color: 'red'},
+                'relative':         { score: 0.6 , color: 'red'},
+                'boyfriend':        { score: 0.65, color: 'red'},
+                'work':             { score: 0.8 , color: 'red'},
+                'school':           { score: 0.9 , color: 'red'},
+                'home':             { score: 1.0 , color: 'red'}
+            };
+            var MAX_TYPE_SCORE = 1.0;
+            var MIN_TYPE_SCORE = 0.1;
+            var map;
+            function initialize() {
+                var map_canvas = document.getElementById('map_canvas');
+                var map_styles = [
+                    {   // turn off pre-existing points of interest labels
+                        featureType: "poi",
+                        elementType: "labels",
+                        stylers: [
+                            { visibility: "off" }
+                        ]
+                    },
+                    {   // turn off highway geometry
+                        featureType: "road.highway",
+                        elementType: "geometry",
+                        stylers: [
+                            { visibility: "off" }
+                        ]
+                    },
+                    {   // turn off highway labels
+                        featureType: "road.highway",
+                        elementType: "labels",
+                        stylers: [
+                            { visibility: "off" }
+                        ]
+                    }
+                ];
+                var map_options = {
+                    center: new google.maps.LatLng(40.7218667, -73.9737833),
+                    zoom: 11,
+                    mapTypeId: google.maps.MapTypeId.ROADMAP,
+                    styles: map_styles
+                };
+                map = new google.maps.Map(map_canvas, map_options);
+                var xhr = new XMLHttpRequest();
+                xhr.open('GET', 'places.json', true);
+                xhr.onload = function() {
+                    load_geojson(JSON.parse(this.responseText));
+                };
+                xhr.send();
+            }
+            google.maps.event.addDomListener(window, 'load', initialize);
+            function load_geojson(results) {
+                var last_age = 0;
+                for (var i = 0; i < results.features.length; i++){
+                    var place = results.features[i];
+                    var age = place.properties.end;
+                    if (age > last_age){
+                        last_age = age
+                    }
+                }
+                for (var i = 0; i < results.features.length; i++){
+                    var place = results.features[i];
+                    var coords = place.geometry.coordinates;
+                    var lat_lng = new google.maps.LatLng(coords[1], coords[0]);
+                    var marker = new google.maps.Marker({
+                        position: lat_lng,
+                        map: map,
+                        icon: get_icon(place.properties, last_age)
+                    });
+                }
+            }
+            function get_icon(properties, last_age){
+                var total_years = 1 + properties.end - properties.start
+                var age_end = properties.end
+                var place_name = properties.name
+                var place_type = properties.type
+                var icon = {
+                    fillColor: TYPE_INFO[place_type].color,
+                    fillOpacity: get_opacity(age_end, last_age),
+                    path: google.maps.SymbolPath.CIRCLE,
+                    scale: get_scale(total_years, last_age, place_type),
+                    strokeWeight: 0.5
+                };
+                return icon;
+            }
+            function get_opacity(age_end, last_age){
+                // opacity is between 0.2 and 0.7
+                return 0.2 + age_end*(0.5/last_age)
+            }
+            function get_scale(total_years, last_age, place_type){
+                // scale is between 1 and 15
+                var factor = 14.0/(last_age*MAX_TYPE_SCORE - MIN_TYPE_SCORE)
+                var offset = 15.0 - factor*last_age
+                return (total_years * TYPE_INFO[place_type].score)*factor + offset
+            }
+        </script>
+    </head>
+    <body>
+        <div id='map_canvas'></div>
+    </body>
+</html>
+
