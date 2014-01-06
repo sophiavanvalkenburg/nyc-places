@@ -9,12 +9,17 @@ json_dict = {'type':'FeatureCollection', 'features':[]}
 with open(fname, 'rb') as csvfile:
     reader = csv.reader(csvfile)
     for row in reader:
-        place_name = row[0]
-        lat = float(row[1])
-        lng = float(row[2])
-        place_type = row[3]
-        age_start = int(row[4])
-        age_end = int(row[5])
+        if len(row) != 6:
+            continue
+        try:
+            place_name = row[0]
+            lat = float(row[1])
+            lng = float(row[2])
+            place_type = row[3]
+            age_start = int(row[4])
+            age_end = int(row[5])
+        except ValueError:
+            continue
         row_dict = {}
         row_dict['type'] = "Feature"
         row_dict['geometry'] = {
