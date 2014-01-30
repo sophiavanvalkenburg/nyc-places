@@ -3,17 +3,13 @@
  * map.php
  *
  * this file returns the map. if a location point is specified in POST,
- * write that location to the map file (or update if it is already there)
+ * write that location to the map file.
  * 
 ***/
 
 $FNAME = 'places.json';
 $map_file = file_get_contents($FNAME);
 
-//echo (isset($_POST['start']) && isset($_POST['end']) && isset($_POST['name']) 
-//    && isset($_POST['type'])  && isset($_POST['lat']) && isset($_POST['long']));
-
-//echo var_dump($_POST);
 
 if( isset($_POST['start']) && isset($_POST['end']) && isset($_POST['name']) 
     && isset($_POST['type'])  && isset($_POST['lat']) && isset($_POST['long']) ){
