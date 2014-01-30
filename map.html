@@ -10,8 +10,20 @@
             #map_canvas {
                 min-height: 100%;
             }
+            #map_tools {
+                position: absolute;
+                z-index:1;
+                left: 5%;
+                bottom: 2%;
+                width: 90%;
+                height: 25%;
+                background: white;
+                opacity: 0.75;
+                border-radius:10px;
+            }
         </style>
         <script src='https://maps.googleapis.com/maps/api/js?sensor=false&libraries=visualization'></script>
+        <script src='jquery-2.1.0.min.js'></script>
         <script>
             var TYPE_INFO = {
                 'landmark':         { score: 0.4, color: 'teal'},
@@ -25,30 +37,31 @@
             var MAX_TYPE_SCORE = 1.0;
             var MIN_TYPE_SCORE = 0.1;
             var map;
+            google.maps.event.addDomListener(window, 'load', initialize);
             function initialize() {
                 var map_canvas = document.getElementById('map_canvas');
                 var map_styles = [
-                    {   // turn off pre-existing points of interest labels
-                        featureType: "poi",
-                        elementType: "labels",
-                        stylers: [
-                            { visibility: "off" }
-                        ]
-                    },
-                    {   // turn off highway geometry
-                        featureType: "road.highway",
-                        elementType: "geometry",
-                        stylers: [
-                            { visibility: "off" }
-                        ]
-                    },
-                    {   // turn off highway labels
-                        featureType: "road.highway",
-                        elementType: "labels",
-                        stylers: [
-                            { visibility: "off" }
-                        ]
-                    }
+                {   // turn off pre-existing points of interest labels
+                    featureType: "poi",
+                    elementType: "labels",
+                    stylers: [
+                    { visibility: "off" }
+                    ]
+                },
+                {   // turn off highway geometry
+                    featureType: "road.highway",
+                    elementType: "geometry",
+                    stylers: [
+                    { visibility: "off" }
+                    ]
+                },
+                {   // turn off highway labels
+                    featureType: "road.highway",
+                    elementType: "labels",
+                    stylers: [
+                    { visibility: "off" }
+                    ]
+                }
                 ];
                 var map_options = {
                     center: new google.maps.LatLng(40.7218667, -73.9737833),
@@ -57,15 +70,21 @@
                     styles: map_styles
                 };
                 map = new google.maps.Map(map_canvas, map_options);
-                var xhr = new XMLHttpRequest();
-                xhr.open('GET', 'places.json', true);
-                xhr.onload = function() {
-                    load_geojson(JSON.parse(this.responseText));
-                };
-                xhr.send();
+                $.ajaxSetup({ cache: false });
+                load_json_and_draw('map.php', null)
             }
-            google.maps.event.addDomListener(window, 'load', initialize);
-            function load_geojson(results) {
+            function load_json_and_draw(get_url,post_data){
+                if (post_data){
+                    $.post( get_url, post_data, draw_locations );
+                } else {
+                    $.get( get_url, draw_locations );
+                }
+            }
+            function draw_locations(data, status) {
+                var results = JSON.parse(data);
+                if (results === undefined || results.features === undefined){
+                    return;
+                }
                 var last_age = 0;
                 for (var i = 0; i < results.features.length; i++){
                     var place = results.features[i];
@@ -111,20 +130,42 @@
             }
             function get_opacity(age_end, last_age){
                 // opacity is approx between 1.3 and  0.57
-                var x = age_end/last_age
-                return 0.03*Math.exp(2.75*x) + 0.1
+                var x = age_end/last_age;
+                return 0.03*Math.exp(2.75*x) + 0.1;
             }
             function get_scale(total_years, last_age, place_type){
                 // scale is between 2 and 10 (times growth factor)
-                var x = total_years * TYPE_INFO[place_type].score
-                var factor = 8.0/(last_age*MAX_TYPE_SCORE - MIN_TYPE_SCORE)
-                var offset = 10.0 - factor*last_age
-                return x*factor + offset
+                var x = total_years * TYPE_INFO[place_type].score;
+                var factor = 8.0/(last_age*MAX_TYPE_SCORE - MIN_TYPE_SCORE);
+                var offset = 10.0 - factor*last_age;
+                return x*factor + offset;
+            }
+            function add_location(start_age, end_age, place_type, place_name, 
+            latitude, longitude){
+                var get_url = "map.php";
+                var post_data = {
+                    start:  start_age,
+                    end:    end_age,
+                    type:   place_type,
+                    name:   place_name,
+                    lat:    latitude,
+                    long:   longitude
+                };
+                load_json_and_draw(get_url, post_data);
             }
         </script>
     </head>
     <body>
-        <div id='map_canvas'></div>
+        <div id='map_canvas' rel="#map_tools"></div>
+        <div id="map_tools">
+            <div id="add_btn">add btn</div>
+            <div id="search_bar">
+                <div id="search_input">search input</div>
+                <div id="search_btn">search btn</div>
+            </div>
+            <div id="slide_bar">slide bar</div>
+            <div id="legend">legend</div>
+        </div>
     </body>
 </html>
 
