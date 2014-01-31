@@ -17,12 +17,50 @@
                 bottom: 2%;
                 width: 90%;
                 height: 25%;
-                background: white;
-                opacity: 0.75;
+                background: rgba(255,255,255,0.75);
                 border-radius:10px;
             }
+            .overlay-content {
+                display:none;
+            }
+            #add_modal {
+                background-color:#fff;
+                position:relative;
+                width:40%;
+                padding:1%;
+                top:15%;
+                left:50%;
+                margin: 0 0 0 -20%;
+                text-align:left;
+                border:2px solid #333;
+                cursor: default;
+
+                -moz-border-radius:6px;
+                -webkit-border-radius:6px;
+                -moz-box-shadow: 0 0 50px #ccc;
+                -webkit-box-shadow 0 0 50px #ccc;
+            }
+
+            #add_modal h2 {
+                margin:0px;
+                padding:10px 0 10px 45px;
+                border-bottom:1px solid #333;
+                font-size:20px;
+            }
+
+            .overlay {
+                display: none;
+                position: fixed;
+                top: 0;
+                left: 0;
+                height: 100%;
+                width: 100%;
+                cursor: pointer;
+                background-color: rgba(0,0,0,0.2);
+                z-index:2;
+            }
         </style>
-        <script src='https://maps.googleapis.com/maps/api/js?sensor=false&libraries=visualization'></script>
+        <script type="text/javascript" src="http://maps.googleapis.com/maps/api/js?libraries=visualization&sensor=false"></script>
         <script src='jquery-2.1.0.min.js'></script>
         <script>
             var TYPE_INFO = {
@@ -153,18 +191,62 @@
                 };
                 load_json_and_draw(get_url, post_data);
             }
+            $(document).ready(function(){
+                $('.overlay-trigger').click(function(event){
+                    event.preventDefault();
+                    var overlay = $(this).attr('overlay');
+                    var overlay_content = overlay + ' .overlay-content';
+                    $(overlay).show();
+                    $(overlay_content).show();
+                });
+                $('#add_modal .close').click(function(){
+                    $('#add_modal').hide();
+                    $('#add_overlay').hide();
+                });
+                $("#add_modal form").submit(function(e){
+                    var input = $("input", this).val();
+                    console.log(input);
+                    $('#add_modal').hide();
+                    $('#add_overlay').hide();
+                    return e.preventDefault();
+                });
+            });
+            /*
+            function search(search_term){
+                var request = {
+                    query:      search_term,
+                    location:   map.center,
+                    radius:     20000
+                }
+                var service = new google.maps.places.PlacesService(map);
+                searvice.textSearch(request, search_callback);
+            }
+            */
         </script>
     </head>
     <body>
-        <div id='map_canvas' rel="#map_tools"></div>
+        <div id='map_canvas'></div>
         <div id="map_tools">
-            <div id="add_btn">add btn</div>
+            <div id="add_btn">
+                <button class="overlay-trigger" overlay="#add_overlay">Add</button>
+            </div>
             <div id="search_bar">
                 <div id="search_input">search input</div>
                 <div id="search_btn">search btn</div>
             </div>
             <div id="slide_bar">slide bar</div>
             <div id="legend">legend</div>
+        </div>
+        <div class="overlay" id="add_overlay">
+            <div class="overlay-content" id="add_modal">
+                <h2>Add a location</h2>
+                <form>
+                    <input />
+                    <button type="submit"> OK </button>
+                    <button type="button" class="close"> Cancel </button>
+                </form>
+                <br />
+            </div>
         </div>
     </body>
 </html>
