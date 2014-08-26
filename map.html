@@ -20,13 +20,18 @@
                 background: rgba(255,255,255,0.75);
                 border-radius:10px;
             }
+
+            #map_tools_container {
+                padding:10px;
+            }
+
             .overlay-content {
                 display:none;
             }
             #add_modal {
                 background-color:#fff;
                 position:relative;
-                width:40%;
+                width:30%;
                 padding:1%;
                 top:15%;
                 left:50%;
@@ -46,6 +51,47 @@
                 padding:10px 0 10px 45px;
                 border-bottom:1px solid #333;
                 font-size:20px;
+            }
+
+            #name_input {
+                width:200px;
+            }
+            #start_input, #end_input {
+                width:50px;
+            }
+
+            #search_bar {
+                float:left;
+            }
+
+            #age_slider_container{
+                float:left;
+                margin-top:20px;
+                margin-left:10px;
+            }
+
+            #age_slider {
+                width:200px;
+                float:left;
+            }
+
+            #age_picker_container {
+            }
+
+            #age_picker {
+            }
+
+            #legend {
+                float:right;
+            }
+
+            .color_btn {
+                height:20px;
+                width:70px;
+                margin-top:0px;
+            }
+            .color_btn .ui-button-text {
+                font-size:0.1em;
             }
 
             .overlay {
@@ -210,8 +256,25 @@
                     $('#add_overlay').hide();
                     return e.preventDefault();
                 });
-            });
-            /*
+                var age_picker = $("#age_picker");
+                var slider = $( "#age_slider").insertAfter(age_picker).slider({
+                    value:  age_picker[0].selectedIndex + 1,
+                    slide:  function(event, ui){
+                        age_picker[0].selectedIndex = ui.value - 1;
+                    }
+                });
+                age_picker.change(function() {
+                    slider.slider("value", this.selectedIndex + 1);
+                });
+                $("#landmark_btn").button();
+                $("#food_btn").button();
+                $("#activity_btn").button();
+                $("#people_btn").button();
+                $("#work_btn").button();
+                $("#school_btn").button();
+                $("#home_btn").button();
+        });
+        /*
             function search(search_term){
                 var request = {
                     query:      search_term,
@@ -227,23 +290,87 @@
     <body>
         <div id='map_canvas'></div>
         <div id="map_tools">
-            <div id="add_btn">
-                <button class="overlay-trigger" overlay="#add_overlay">Add</button>
+            <div id="map_tools_container">
+                <div id="add_btn">
+                    <button class="overlay-trigger" overlay="#add_overlay"> Add Location </button>
+                </div>
+                <div id="search_bar">
+                    <form id="search_form">
+                        <p>
+                        <input type="text" name="search_bar" id="search_bar"/>
+                        <button type="submit"> Search </button>
+                        </p>
+                    </form>
+                </div>
+                <div id="age_slider_container">
+                    <div id="age_slider"></div>
+                    <form id="age_picker_container">
+                        <select name="age_picker" id="age_picker"></select>
+                    </form>
+                </div>
+                <div id="legend">
+                    <!--
+var TYPE_INFO = {
+                'landmark':         { score: 0.4, color: 'teal'},
+                'food':             { score: 0.5, color: 'green'},
+                'activity':         { score: 0.6, color: 'purple'},
+                'people':           { score: 0.7, color: 'red'},
+                'work':             { score: 0.8 , color: 'navy'},
+                'school':           { score: 0.9 , color: 'blue'},
+                'home':             { score: 1.5 , color: 'black'}
+            };
+            -->
+                    <p>
+                    <input type="checkbox" id="landmark_btn" > <label class="color_btn" for="landmark_btn"> Landmarks </label>
+                    <input type="checkbox" id="food_btn" ><label class="color_btn" for="food_btn"> Food </label>
+                    <input type="checkbox" id="activity_btn"><label class="color_btn" for="activity_btn"> Activities </label>
+                    </p>
+                    <p>
+                    <input type="checkbox" id="people_btn" ><label class="color_btn" for="people_btn"> People </label>
+                    <input type="checkbox" id="work_btn" ><label class="color_btn" for="work_btn"> Work </label>
+                    <input type="checkbox" id="school_btn"><label class="color_btn" for="school_btn"> School </label>
+                    </p>
+                    <p>
+                    <input type="checkbox" id="home_btn" ><label class="color_btn" for="home_btn"> Home </label>
+                    </p>
+                </div>
             </div>
-            <div id="search_bar">
-                <div id="search_input">search input</div>
-                <div id="search_btn">search btn</div>
-            </div>
-            <div id="slide_bar">slide bar</div>
-            <div id="legend">legend</div>
         </div>
         <div class="overlay" id="add_overlay">
             <div class="overlay-content" id="add_modal">
                 <h2>Add a location</h2>
-                <form>
-                    <input />
-                    <button type="submit"> OK </button>
-                    <button type="button" class="close"> Cancel </button>
+                <form id="add_location_form">
+                    <div id="lat_long_input">
+                        <p>
+                        Lat: <input type="text" name="lat" id="lat_input"/>
+                        Long: <input type="text" name="long" id="long_input"/>
+                        </p>
+                    </div>
+                    <div id="name_type_input">
+                        <p>
+                        Name: <input type="text" name="name" id="name_input"/>
+                        <select name="type" id="type_input" >
+                            <option selected disabled >Choose Type</option>
+                            <option value="landmark">landmark</option>
+                            <option value="food">food</option>
+                            <option value="activity">activity</option>
+                            <option value="people">people</option>
+                            <option value="work">work</option>
+                            <option value="school">school</option>
+                            <option value="home">home</option>
+                        </select>
+                        </p>
+                    </div>
+                    <div id="age_input">
+                        <p>
+                        Age: <input type="text" name="start" id="start_input"/>
+                        to <input type="text" name="end" id="end_input"/>
+                        </p>
+                    </div>
+                    <div id="button_input">
+                        <button type="submit"> OK </button>
+                        <button type="button" class="close"> Cancel </button>
+                    </div>
                 </form>
                 <br />
             </div>
